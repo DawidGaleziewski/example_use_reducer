@@ -7,17 +7,35 @@ function App() {
   const [productType, setProductType] = useState('clothes');
   const [productQuantity, setProductQuantity] = useState(0);
   const [activeStep, setActiveStep] = useState(0);
-  const [serverData, setServerData] = useState<null | {promotion: number}>(null)
+  const [serverData, setServerData] = useState<null | {promotion: number}>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false)
 
 
+    const PLACEHOLDER_PROMOTION_DATA = {
+      promotion: 5,
+    }
   const fetchData = <T,>(data:T) => {
       return new Promise<T>(resolve => setTimeout(() => resolve(data), 2000));
   }
   const onSubmitHandler = async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const result = await fetchData({promotion: 20});
-      setServerData(result)
-      productQuantity > 2 ? setActiveStep(2) : setActiveStep(1);
+      setIsLoading(true);
+
+      try {
+          const result = await fetchData({promotion: 20});
+          setServerData(result)
+          setIsLoading(false);
+          productQuantity > 2 ? setActiveStep(2) : setActiveStep(1);
+      } catch (e){
+          setHasError(false);
+          setIsLoading(false);
+          setServerData(PLACEHOLDER_PROMOTION_DATA);
+      }
+  }
+
+  if(hasError){
+      return <div>Error</div>
   }
 
   return (
@@ -26,6 +44,7 @@ function App() {
           {isModalOpen && <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div className="bg-white pt-7 pb-10 px-5 rounded w-96">
               <CloseIcon onClick={() => setIsModalOpen(false)} className="ml-auto mb-5 cursor-pointer" />
+                {isLoading && "Loading..."}
               <div className="flex justify-between grow-1 mb-5">
                 <button className={`${activeStep === 0 ? "bg-rose-900": "bg-gray-400"} px-2 py-3 rounded-l basis-1/3 border-r-2`}>Step 1</button>
                 <button className={`${activeStep === 1 ? "bg-rose-900": "bg-gray-400"} bg-gray-400 px-2 py-3 basis-1/3 border-r-2`}>Step 2</button>
