@@ -106,9 +106,13 @@ function App() {
                 <>
                   <h2 className="text-lg font-bold mb-5">Fill up the order</h2>
                   <form onSubmit={onSubmitHandler} className="flex flex-col">
+                    {emailServerValidation === false && <p className="text-red-700">Wrong email!</p>}
                     <input
                       value={userEmail}
-                      onChange={({ target: { value } }) => setUserEmail(value)}
+                      onChange={({ target: { value } }) => {
+                        setUserEmail(value)
+                        setEmailServerValidation(null)
+                      }}
                       className="p-2 mb-5 w-12/12 bg-gray-200 border-b-2 border-slate-700 rounded-t-sm"
                       type="email"
                       name="email"
@@ -128,8 +132,10 @@ function App() {
                     {productQuantityTypeValidation === false && <p className="text-red-700">Wrong quantity value!</p>}
                     <input
                       value={productQuantity}
-                      onChange={({ target: { value } }) =>
+                      onChange={({ target: { value } }) =>{
                         setProductQuantity(Number(value))
+                        setProductQuantityTypeValidation(null)
+                        }
                       }
                       name="quantity"
                       placeholder="quantity"
