@@ -4,8 +4,11 @@ import "./App.css";
 function App() {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [userEmail, setUserEmail] = useState("");
+  const [emailServerValidation, setEmailServerValidation] = useState<null | boolean>(null)
   const [productType, setProductType] = useState("clothes");
+  const [productTypeValidation, setProductTypeValidation] = useState<null | boolean>(null)
   const [productQuantity, setProductQuantity] = useState(0);
+  const [productQuantityTypeValidation, setProductQuantityTypeValidation] = useState<null | boolean>(null)
   const [activeStep, setActiveStep] = useState(0);
   const [serverData, setServerData] = useState<null | { promotion: number }>(
     null
@@ -25,16 +28,39 @@ function App() {
     setIsLoading(true);
 
     try {
+      const serverValidation = await fetchData<{productQuantity: boolean}>({productQuantity: false})
+      setProductQuantityTypeValidation(serverValidation.productQuantity);
       const result = await fetchData({ promotion: 20 });
+      if(productQuantityTypeValidation === false){
+        setHasError(true);
+      }
       setServerData(result);
       setIsLoading(false);
-      productQuantity > 2 ? setActiveStep(2) : setActiveStep(1);
+      productQuantity > 2 && !hasError ? setActiveStep(2) : setActiveStep(1);
     } catch (e) {
       setHasError(false);
       setIsLoading(false);
       setServerData(PLACEHOLDER_PROMOTION_DATA);
     }
   };
+
+  const onCloseClick = () => {
+    // spot the error
+    setProductQuantityTypeValidation(null)
+    setIsLoading(false);
+    setEmailServerValidation(null)
+    setIsModalOpen(false);
+    setServerData(null);
+    setProductTypeValidation(null)
+  }
+
+  const onLastStepClose = () => {
+    // spot another error
+    setIsLoading(false);
+    setEmailServerValidation(null)
+    setIsModalOpen(false);
+    setProductTypeValidation(null)
+  }
 
   if (hasError) {
     return <div>Error</div>;
@@ -47,7 +73,7 @@ function App() {
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div className="bg-white pt-7 pb-10 px-5 rounded w-96">
               <CloseIcon
-                onClick={() => setIsModalOpen(false)}
+                onClick={onCloseClick}
                 className="ml-auto mb-5 cursor-pointer"
               />
               {isLoading && "Loading..."}
@@ -99,6 +125,7 @@ function App() {
                       <option value="electronics">Electronics</option>
                       <option value="clothes">Clothes</option>
                     </select>
+                    {productQuantityTypeValidation === false && <p className="text-red-700">Wrong quantity value!</p>}
                     <input
                       value={productQuantity}
                       onChange={({ target: { value } }) =>
@@ -136,8 +163,8 @@ function App() {
               {activeStep === 2 && (
                 <>
                   <h2 className="text-lg font-bold mb-5">Summary</h2>
-                  <button className="p-2 rounded-md bg-slate-700 text-white">
-                    Go to summary
+                  <button onClick={onLastStepClose} className="p-2 rounded-md bg-slate-700 text-white">
+                    Back to shopping!
                   </button>
                 </>
               )}
